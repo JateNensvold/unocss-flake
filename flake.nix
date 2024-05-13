@@ -9,11 +9,14 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         shellPkgs = import nixpkgs { inherit system; };
-        unocss = shellPkgs.callPackage ./unocss.nix { };
+        pnpm = shellPkgs.callPackage ./pnpm.nix { };
+        # unocss = shellPkgs.callPackage ./unocss.nix { pnpm = pnpm; };
       in {
         devShell = shellPkgs.mkShell {
-          packages = [ unocss ];
-
+          packages = [
+		  pnpm
+		  # unocss
+		  ];
         };
       });
 
