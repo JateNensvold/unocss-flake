@@ -8,16 +8,19 @@
   outputs = { flake-utils, nixpkgs, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        shellPkgs = import nixpkgs { inherit system; };
-        pnpm = shellPkgs.callPackage ./pnpm.nix { };
-        # unocss = shellPkgs.callPackage ./unocss.nix { pnpm = pnpm; };
+        pkgs = import nixpkgs { inherit system; };
+        # pnpm = pkgs.callPackage ./pkgs/pnpm.nix { };
+        # unocss = pkgs.callPackage ./pkgs/unocss.nix { pnpm = pnpm; };
+        unocss_pkgs = pkgs.callPackage ./pkgs/unocss-cli { };
       in {
-        devShell = shellPkgs.mkShell {
+        devShell = pkgs.mkShell {
           packages = [
-		  pnpm
-		  # unocss
-		  ];
+            # comment
+            unocss_pkgs."@unocss/cli"
+            pkgs.node2nix
+          ];
         };
+        packages.default = unocss_pkgs;
+        packages.unocss-cli = unocss_pkgs."@unocss/cli";
       });
-
 }
