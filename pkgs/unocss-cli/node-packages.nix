@@ -680,4 +680,31 @@ in
     bypassCache = true;
     reconstructLock = true;
   };
+  "@unocss/preset-uno" = nodeEnv.buildNodePackage {
+    name = "_at_unocss_slash_preset-uno";
+    packageName = "@unocss/preset-uno";
+    version = "0.60.3";
+    src = fetchurl {
+      url = "https://registry.npmjs.org/@unocss/preset-uno/-/preset-uno-0.60.3.tgz";
+      sha512 = "PJSR78uaIRTsD9RFSQLwsrGAsjQoW5nWenU4n4GyZeskDsyQVgOcaKtvh+0aYjYdWBa1UvxeUL8Y+m29K4HnAA==";
+    };
+    dependencies = [
+      sources."@jridgewell/sourcemap-codec-1.4.15"
+      sources."@unocss/core-0.60.3"
+      sources."@unocss/extractor-arbitrary-variants-0.60.3"
+      sources."@unocss/preset-mini-0.60.3"
+      sources."@unocss/preset-wind-0.60.3"
+      sources."@unocss/rule-utils-0.60.3"
+      sources."magic-string-0.30.10"
+    ];
+    buildInputs = globalBuildInputs;
+    meta = {
+      description = "The default preset for UnoCSS";
+      homepage = "https://github.com/unocss/unocss/tree/main/packages/preset-uno#readme";
+      license = "MIT";
+    };
+    production = true;
+    bypassCache = true;
+    reconstructLock = true;
+  };
 }

@@ -15,12 +15,18 @@
       in {
         devShell = pkgs.mkShell {
           packages = [
-            # comment
-            unocss_pkgs."@unocss/cli"
+            # dev packages
+            pkgs.just
             pkgs.node2nix
+            # test packages
+            unocss_pkgs."@unocss/cli"
+            unocss_pkgs."unocss-language-server"
+            unocss_pkgs."@unocss/preset-uno"
           ];
         };
         packages.default = unocss_pkgs;
         packages.unocss-cli = unocss_pkgs."@unocss/cli";
+        packages.unocss-lsp = unocss_pkgs."unocss-language-server";
+        packages.unocss-uno = unocss_pkgs."@unocss/preset-uno";
       });
 }

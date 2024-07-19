@@ -1,1 +1,1 @@
-["@unocss/cli", "unocss-language-server"]
+["@unocss/cli", "unocss-language-server", "@unocss/preset-uno"]
