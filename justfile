@@ -3,5 +3,23 @@
 _default:
     @just --list
 
-build:
-	node2nix -i ./pkgs/unocss-cli/node-packages.json -o ./pkgs/unocss-cli/node-packages.nix --composition ./pkgs/unocss-cli/default.nix --node-env ./pkgs/unocss-cli/node-env.nix
+build-s:
+	just build-pkg-s unocss
+
+build-pkg-s PACKAGE:
+	node2nix -i ./pkgs/{{PACKAGE}}/node-packages.json \
+	-o ./pkgs/{{PACKAGE}}/node-packages.nix \
+	--composition ./pkgs/{{PACKAGE}}/default.nix \
+	--node-env ./pkgs/{{PACKAGE}}/node-env.nix \
+	--supplement-input ./pkgs/{{PACKAGE}}/supplement.json \
+	--supplement-output ./pkgs/{{PACKAGE}}/supplement.nix -18
+
+
+build PACKAGE:
+	nix build .#{{PACKAGE}}
+
+build-pkg PACKAGE:
+	node2nix -i ./pkgs/{{PACKAGE}}/node-packages.json \
+	-o ./pkgs/{{PACKAGE}}/node-packages.nix \
+	--composition ./pkgs/{{PACKAGE}}/default.nix \
+	--node-env ./pkgs/{{PACKAGE}}/node-env.nix -18

@@ -1,2 +1,6 @@
 # direnv
 .direnv
+node_modules
+
+# Build artifacts
+result

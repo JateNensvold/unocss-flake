@@ -1,85 +1,56 @@
-{ lib, stdenv, fetchFromGitHub, stdenvNoCC, jq, moreutils, pnpm, cacert
-, nodejs_22 }:
+{ lib, stdenv, fetchFromGitHub, pnpm_9, nodejs, makeBinaryWrapper }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "unocss";
-  version = "v0.60.0";
+  version = "0.62.4";
 
   src = fetchFromGitHub {
     owner = "unocss";
     repo = "unocss";
-    rev = "${version}";
-    hash = "sha256-TE7qCcBfSrk+D1yAqW0MXzx4WKs1OLaNtDzDhFR+o2s=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-bY51oSBAZKRcMdwT//PI6iHljSJ0OkTYCt93cHhbKXA=";
   };
 
-  pnpm-deps = stdenvNoCC.mkDerivation {
-    pname = "${pname}-pnpm-deps";
-    inherit src version;
-
-    nativeBuildInputs = [ jq moreutils cacert pnpm ];
-
-    # https://github.com/NixOS/nixpkgs/blob/de80f1eeac3152c5bbfb1f8891b6414d526bfc54/pkgs/by-name/po/pot/package.nix#L54
-    installPhase = ''
-      export HOME=$(mktemp -d)
-
-      pnpm config set store-dir $out
-      pnpm install --frozen-lockfile --ignore-script
-
-      # Remove timestamp and sort the json files
-      rm -rf $out/v3/tmp
-      for f in $(find $out -name "*.json"); do
-        sed -i -E -e 's/"checkedAt":[0-9]+,//g' $f
-        jq --sort-keys . $f | sponge $f
-      done
-    '';
-
-    outputHashMode = "recursive";
-    outputHash = "sha256-pQpattmS9VmO3ZIQUFn66az8GSmB4IvYhTTCFn6SUmo=";
+  pnpmDeps = pnpm_9.fetchDeps {
+    inherit (finalAttrs) pname version src;
+    hash = "sha256-EqYXvcbVxeJ7IF3aKGlyV2vPY0j3O++bR5Wi3zkpssc=";
   };
-  nativeBuildInputs = [ nodejs_22 pnpm];
 
-  preBuild = ''
-    export HOME=$(mktemp -d)
-    export STORE_PATH=$(mktemp -d)
+  nativeBuildInputs = [ nodejs pnpm_9.configHook makeBinaryWrapper ];
 
-    cp -Tr "${pnpm-deps}" "$STORE_PATH"
-    chmod -R +w "$STORE_PATH"
-
-    pnpm config set store-dir "$STORE_PATH"
-    pnpm list
-    pnpm install --offline --frozen-lockfile --ignore-script
-    patchShebangs node_modules/{*,.*}
+  prePnpmInstall = ''
+    pnpm config set dedupe-peer-dependents false
   '';
 
-  # postBuild = ''
-  #   pnpm --version
-  #   pnpm list
-  # '';
+  buildPhase = ''
+    runHook preBuild
+
+    pnpm build --filter=cli
+
+    runHook postBuild
+  '';
 
   installPhase = ''
-    # export HOME=$(mktemp -d)
+    runHook preInstall
 
-    # pnpm config set store-dir ${pnpm-deps}/share
-    # pnpm install --offline --frozen-lockfile --ignore-script --no-optional
+    mkdir -p $out/{bin,lib/unocss}
 
-    # mkdir -p $out/bin
-    # pnpm deploy --filter=@unocss --offline --prod --no-optional $out
+    cp -r {packages,node_modules} $out/lib/unocss
+
+    makeWrapper ${lib.getExe nodejs} $out/bin/unocss \
+      --inherit-argv0 \
+      --add-flags $out/lib/unocss/node_modules/@unocss/cli/bin/unocss.mjs
+
+    runHook postInstall
   '';
 
-  # installPhase = ''
-  #   runHook preInstall
-  #
-  #   mkdir -p ${pnpm-deps}/v3
-  #   mv $out/bin/nodeServer.js $out/bin/unocss
-  #
-  #   runHook postInstall
-  # '';
+  doInstallCheck = true;
 
-  meta = {
-    description = "Unocss Language";
+  meta = with lib; {
+    description = "The instant on-demand atomic CSS engine";
     homepage = "https://github.com/unocss/unocss";
-    license = lib.licenses.mit;
+    license = licenses.mit;
     mainProgram = "unocss";
-    platforms = lib.platforms.unix;
+    platforms = platforms.all;
   };
-}
+})
